@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning d'Épargne Interactif</title>
+    <style>
+        :root {
+            --notion-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+            --notion-bg: #ffffff;
+            --notion-text: #37352f;
+            --notion-gray-bg: #f7f6f3;
+            --notion-light-gray: #e9e9e7;
+            --notion-blue: #2383E2;
+            --notion-red: #ff6666;
+            --notion-green: #018764;
+        }
+        
+        /* Dark mode variables */
+        .dark-mode {
+            --notion-bg: #191919;
+            --notion-text: #e6e6e6;
+            --notion-gray-bg: #2d2d2d;
+            --notion-light-gray: #3d3d3d;
+            --notion-blue: #4a9ced;
+            --notion-red: #ff7878;
+            --notion-green: #2baa80;
+        }
+
+        body {
+            font-family: var(--notion-font);
+            background-color: var(--notion-bg);
+            color: var(--notion-text);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--notion-bg);
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--notion-light-gray);
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--notion-text);
+            transition: transform 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--notion-light-gray);
+            transition: background-color 0.3s ease;
+        }
+
+        .metric-card {
+            background-color: var(--notion-gray-bg);
+            padding: 15px;
+            border-radius: 5px;
+            min-width: 220px;
+            flex-grow: 1;
+            transition: background-color 0.3s ease;
+        }
+
+        .metric-title {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 500;
+        }
+
+        .progress-container {
+            margin-top: 10px;
+            height: 8px;
+            background-color: var(--notion-light-gray);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--notion-blue);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
+        .table-section {
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--notion-light-gray);
+            transition: border-color 0.3s ease;
+        }
+
+        th {
+            background-color: var(--notion-gray-bg);
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        input {
+            font-family: var(--notion-font);
+            padding: 8px 10px;
+            border: 1px solid var(--notion-light-gray);
+            border-radius: 4px;
+            width: 100%;
+            background-color: var(--notion-bg);
+            color: var(--notion-text);
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .table-footer {
+            padding: 15px 0;
+            font-weight: 500;
+            border-top: 2px solid var(--notion-light-gray);
+            transition: border-color 0.3s ease;
+        }
+
+        .positive {
+            color: var(--notion-green);
+        }
+
+        .negative {
+            color: var(--notion-red);
+        }
+
+        .action-button {
+            background-color: var(--notion-blue);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .action-button:hover {
+            opacity: 0.9;
+        }
+
+        .forecast-section {
+            padding: 0 20px 20px 20px;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            height: 250px;
+        }
+
+        .objective-input-container {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .objective-input {
+            width: 150px;
+            font-size: 16px;
+        }
+        
+        /* Célébration de palier */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .celebration-content {
+            background-color: var(--notion-bg);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            max-width: 80%;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        .celebration-emoji {
+            font-size: 50px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite alternate;
+        }
+        
+        .celebration-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--notion-blue);
+        }
+        
+        .celebration-message {
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+        
+        .celebration-button {
+            background-color: var(--notion-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .celebration-button:hover {
+            opacity: 0.9;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+        
+        /* Amélioration responsive mobile */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .dashboard {
+                flex-direction: column;
+            }
+            
+            .metric-card {
+                min-width: auto;
+            }
+            
+            .objective-input-container {
+                flex-wrap: wrap;
+            }
+            
+            .objective-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+            }
+            
+            .table-section {
+                padding: 15px 10px;
+                overflow-x: auto;
+            }
+            
+            input {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            h1 {
+                font-size: 20px;
+                margin-right: 40px; /* Espace pour le bouton de thème */
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .action-button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            
+            .celebration-content {
+                padding: 20px;
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Plan d'Épargne Personnalisé</h1>
+            <p class="subtitle">Mise à jour automatique de votre progression</p>
+            <div class="objective-input-container">
+                <label for="objective-input" style="font-weight: 500;">Votre objectif d'épargne:</label>
+                <input 
+                    type="number" 
+                    id="objective-input" 
+                    class="objective-input"
+                    value="17000" 
+                    min="1"
+                >
+                <span style="font-weight: 500;">€</span>
+                <button 
+                    id="update-objective" 
+                    class="action-button" 
+                    style="margin: 0;"
+                >
+                    Mettre à jour
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="metric-card">
+                <div class="metric-title">Montant économisé</div>
+                <div class="metric-value" id="saved-amount">0 €</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="metric-title" id="percentage-saved">0% de l'objectif</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Reste à économiser</div>
+                <div class="metric-value" id="remaining-amount">17 000 €</div>
+                <div class="metric-title" id="percentage-remaining">100% de l'objectif</div>
+                <div class="metric-title">Objectif total: <span id="total-objective">17 000</span> €</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Moyenne mensuelle</div>
+                <div class="metric-value" id="monthly-average">0 €</div>
+                <div class="metric-title" id="estimated-completion">Estimation: N/A</div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <h2>Suivi mensuel</h2>
+            <p>Entrez le montant que vous souhaitez économiser chaque mois :</p>
+            <table id="savings-table">
+                <thead>
+                    <tr>
+                        <th>Mois</th>
+                        <th>Économies planifiées (€)</th>
+                        <th>Économies réelles (€)</th>
+                        <th>Progression (% de l'objectif)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Les lignes seront générées dynamiquement -->
+                </tbody>
+                <tfoot>
+                    <tr class="table-footer">
+                        <td>Total</td>
+                        <td id="planned-total">0 €</td>
+                        <td id="actual-total">0 €</td>
+                        <td id="progress-status"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <button class="action-button" id="add-month">Ajouter un mois</button>
+        </div>
+
+        <div class="forecast-section">
+            <h2>Prévision de votre épargne</h2>
+            <div class="chart-container" id="chart-container"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        // Configuration
+        let OBJECTIVE = 17000; // Objectif en euros par défaut
+        const months = [
+            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+        ];
+        
+        // Variables globales
+        let savingsData = [];
+        let chart = null;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMonths();
+            updateDashboard();
+            initializeChart();
+            
+            // Event listeners
+            document.getElementById('add-month').addEventListener('click', addMonth);
+            document.getElementById('update-objective').addEventListener('click', updateObjective);
+        });
+
+        // Fonction pour mettre à jour l'objectif d'épargne
+        function updateObjective() {
+            const newObjectiveInput = document.getElementById('objective-input');
+            const newObjective = parseInt(newObjectiveInput.value);
+            
+            if (newObjective && newObjective > 0) {
+                OBJECTIVE = newObjective;
+                
+                // Mettre à jour l'affichage de l'objectif total
+                const totalObjectiveElement = document.getElementById('total-objective');
+                if (totalObjectiveElement) {
+                    totalObjectiveElement.textContent = OBJECTIVE.toLocaleString();
+                }
+                
+                // Mettre à jour le tableau de bord et le graphique
+                updateDashboard();
+                updateChart();
+                
+                // Animation flash pour indiquer la mise à jour
+                const dashboard = document.querySelector('.dashboard');
+                dashboard.style.transition = 'background-color 0.3s';
+                dashboard.style.backgroundColor = 'rgba(35, 131, 226, 0.1)';
+                setTimeout(() => {
+                    dashboard.style.backgroundColor = '';
+                }, 500);
+            } else {
+                alert('Veuillez entrer un objectif valide (nombre positif)');
+                // Réinitialiser la valeur en cas d'erreur
+                newObjectiveInput.value = OBJECTIVE;
+            }
+        }
+
+        // Fonction pour initialiser les premiers mois
+        function initializeMonths() {
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            // Ajouter les 12 prochains mois
+            for (let i = 0; i < 12; i++) {
+                const monthIndex = (currentMonth + i) % 12;
+                const year = currentYear + Math.floor((currentMonth + i) / 12);
+                
+                savingsData.push({
+                    month: `${months[monthIndex]} ${year}`,
+                    planned: 0,
+                    actual: 0
+                });
+            }
+            
+            renderTable();
+        }
+
+        // Fonction pour ajouter un mois supplémentaire
+        function addMonth() {
+            const lastEntry = savingsData[savingsData.length - 1];
+            const lastMonthStr = lastEntry.month;
+            const [monthName, yearStr] = lastMonthStr.split(' ');
+            
+            const lastMonthIndex = months.indexOf(monthName);
+            const nextMonthIndex = (lastMonthIndex + 1) % 12;
+            const lastYear = parseInt(yearStr);
+            const nextYear = nextMonthIndex === 0 ? lastYear + 1 : lastYear;
+            
+            savingsData.push({
+                month: `${months[nextMonthIndex]} ${nextYear}`,
+                planned: 0,
+                actual: 0
+            });
+            
+            renderTable();
+            updateChart();
+        }
+
+        // Fonction pour mettre à jour le tableau
+        function renderTable() {
+            const tableBody = document.getElementById('table-body');
+            if (!tableBody) return;
+            
+            // Sauvegarder les valeurs actuelles pour ne pas perdre les modifications en cours
+            const currentInputValues = {};
+            savingsData.forEach((item, index) => {
+                currentInputValues[index] = {
+                    planned: item.planned,
+                    actual: item.actual
+                };
+            });
+            
+            tableBody.innerHTML = '';
+            
+            savingsData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                // Mois
+                const monthCell = document.createElement('td');
+                monthCell.textContent = item.month;
+                
+                // Économies planifiées
+                const plannedCell = document.createElement('td');
+                const plannedInput = document.createElement('input');
+                plannedInput.type = 'number';
+                plannedInput.min = '0';
+                plannedInput.value = currentInputValues[index].planned;
+                plannedInput.addEventListener('input', (e) => {
+                    // Convertir explicitement en nombre
+                    savingsData[index].planned = parseInt(e.target.value) || 0;
+                    // Mettre à jour immédiatement
+                    updateDashboard();
+                    updateChart();
+                    
+                    // Mettre à jour uniquement la cellule de progression sans redessiner tout le tableau
+                    updateProgressCell(index);
+                });
+                plannedCell.appendChild(plannedInput);
+                
+                // Économies réelles
+                const actualCell = document.createElement('td');
+                const actualInput = document.createElement('input');
+                actualInput.type = 'number';
+                actualInput.min = '0';
+                actualInput.value = currentInputValues[index].actual;
+                actualInput.addEventListener('input', (e) => {
+                    // Convertir explicitement en nombre
+                    savingsData[index].actual = parseInt(e.target.value) || 0;
+                    // Mettre à jour immédiatement
+                    updateDashboard();
+                    updateChart();
+                    
+                    // Mettre à jour les cellules de progression pour toutes les lignes
+                    // car le montant cumulé change pour toutes les lignes suivantes
+                    for (let i = index; i < savingsData.length; i++) {
+                        updateProgressCell(i);
+                    }
+                });
+                actualCell.appendChild(actualInput);
+                
+                // Progression
+                const progressCell = document.createElement('td');
+                progressCell.id = `progress-cell-${index}`;
+                updateProgressCellContent(progressCell, index);
+                
+                row.appendChild(monthCell);
+                row.appendChild(plannedCell);
+                row.appendChild(actualCell);
+                row.appendChild(progressCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Fonction pour mettre à jour une cellule de progression spécifique
+        function updateProgressCell(index) {
+            const progressCell = document.getElementById(`progress-cell-${index}`);
+            if (progressCell) {
+                updateProgressCellContent(progressCell, index);
+            }
+        }
+        
+        // Fonction pour calculer et mettre à jour le contenu d'une cellule de progression
+        function updateProgressCellContent(cell, index) {
+            // Calculer le total cumulé jusqu'à ce mois
+            let cumulativeTotal = 0;
+            for (let i = 0; i <= index; i++) {
+                cumulativeTotal += savingsData[i].actual;
+            }
+            
+            // Calculer le pourcentage par rapport à l'objectif global
+            const percentageOfGoal = (cumulativeTotal / OBJECTIVE) * 100;
+            
+            // Afficher le pourcentage et la différence par rapport au montant planifié
+            const diff = savingsData[index].actual - savingsData[index].planned;
+            let diffText = '';
+            
+            if (diff > 0) {
+                diffText = ` (+${diff} €)`;
+                cell.className = 'positive';
+            } else if (diff < 0) {
+                diffText = ` (${diff} €)`;
+                cell.className = 'negative';
+            } else {
+                cell.className = '';
+            }
+            
+            cell.textContent = `${percentageOfGoal.toFixed(1)}%${diffText}`;
+        }
+
+        // Fonction pour mettre à jour le tableau de bord
+        function updateDashboard() {
+            // Vérifier que les éléments existent avant de les mettre à jour
+            const savedAmountElement = document.getElementById('saved-amount');
+            const remainingAmountElement = document.getElementById('remaining-amount');
+            const percentageSavedElement = document.getElementById('percentage-saved');
+            const percentageRemainingElement = document.getElementById('percentage-remaining');
+            const progressBarElement = document.getElementById('progress-bar');
+            const monthlyAverageElement = document.getElementById('monthly-average');
+            const estimatedCompletionElement = document.getElementById('estimated-completion');
+            const plannedTotalElement = document.getElementById('planned-total');
+            const actualTotalElement = document.getElementById('actual-total');
+            const progressStatusElement = document.getElementById('progress-status');
+            
+            if (!savedAmountElement || !remainingAmountElement || !percentageSavedElement || 
+                !percentageRemainingElement || !progressBarElement || !monthlyAverageElement || 
+                !estimatedCompletionElement || !plannedTotalElement || !actualTotalElement || 
+                !progressStatusElement) {
+                console.error("Certains éléments du tableau de bord n'ont pas pu être trouvés.");
+                return;
+            }
+            
+            // Calcul des totaux
+            const plannedTotal = savingsData.reduce((sum, item) => sum + item.planned, 0);
+            const actualTotal = savingsData.reduce((sum, item) => sum + item.actual, 0);
+            const remainingAmount = OBJECTIVE - actualTotal;
+            const savedPercentage = (actualTotal / OBJECTIVE) * 100;
+            
+            // Mise à jour des valeurs affichées
+            savedAmountElement.textContent = `${actualTotal.toLocaleString()} €`;
+            remainingAmountElement.textContent = `${remainingAmount.toLocaleString()} €`;
+            percentageSavedElement.textContent = `${savedPercentage.toFixed(1)}% de l'objectif`;
+            percentageRemainingElement.textContent = `${(100 - savedPercentage).toFixed(1)}% de l'objectif`;
+            progressBarElement.style.width = `${savedPercentage}%`;
+            
+            // Calcul de la moyenne mensuelle
+            const activeMonths = savingsData.filter(item => item.actual > 0).length;
+            const monthlyAverage = activeMonths > 0 ? actualTotal / activeMonths : 0;
+            monthlyAverageElement.textContent = `${monthlyAverage.toFixed(0)} €`;
+            
+            // Estimation du temps restant
+            let estimatedCompletion = 'N/A';
+            if (monthlyAverage > 0) {
+                const monthsRemaining = Math.ceil(remainingAmount / monthlyAverage);
+                if (monthsRemaining > 0) {
+                    const currentDate = new Date();
+                    currentDate.setMonth(currentDate.getMonth() + monthsRemaining);
+                    const estimatedMonth = months[currentDate.getMonth()];
+                    const estimatedYear = currentDate.getFullYear();
+                    estimatedCompletion = `${estimatedMonth} ${estimatedYear}`;
+                } else {
+                    estimatedCompletion = 'Objectif atteint!';
+                }
+            }
+            estimatedCompletionElement.textContent = `Estimation: ${estimatedCompletion}`;
+            
+            // Mise à jour des totaux dans le tableau
+            plannedTotalElement.textContent = `${plannedTotal.toLocaleString()} €`;
+            actualTotalElement.textContent = `${actualTotal.toLocaleString()} €`;
+            
+            // Statut de progression
+            const percentageTotal = (actualTotal / OBJECTIVE) * 100;
+            const diff = actualTotal - plannedTotal;
+            
+            let diffText = '';
+            if (diff > 0) {
+                diffText = ` (+${diff.toLocaleString()} €)`;
+                progressStatusElement.className = 'positive';
+            } else if (diff < 0) {
+                diffText = ` (${diff.toLocaleString()} €)`;
+                progressStatusElement.className = 'negative';
+            }
+            
+            progressStatusElement.textContent = `${percentageTotal.toFixed(1)}%${diffText}`;
+        }
+
+        // Initialisation du graphique
+        function initializeChart() {
+            const chartContainer = document.getElementById('chart-container');
+            if (!chartContainer) return;
+            
+            const ctx = document.createElement('canvas');
+            chartContainer.appendChild(ctx);
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Épargne cumulée',
+                            data: [],
+                            borderColor: '#2383E2',
+                            backgroundColor: 'rgba(35, 131, 226, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Objectif',
+                            data: [],
+                            borderColor: '#018764',
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Euros (€)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' €';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString() + ' €';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            updateChart();
+        }
+
+        // Mise à jour du graphique
+        function updateChart() {
+            if (!chart) return;
+            
+            const labels = savingsData.map(item => item.month);
+            
+            // Calcul des valeurs cumulées
+            let cumulativeActual = 0;
+            const cumulativeData = savingsData.map(item => {
+                cumulativeActual += item.actual;
+                return cumulativeActual;
+            });
+            
+            // Ligne d'objectif
+            const objectiveLine = Array(labels.length).fill(OBJECTIVE);
+            
+            // Mise à jour des données
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = cumulativeData;
+            chart.data.datasets[1].data = objectiveLine;
+            
+            chart.update();
+        }
+
+        // Vérifier et célébrer les paliers d'épargne
+        function checkMilestones(percentage) {
+            // Définir les paliers à célébrer (25%, 50%, 75%, 100%)
+            const milestones = [25, 50, 75, 100];
+            
+            // Trouver le palier actuel
+            let currentMilestone = 0;
+            for (const milestone of milestones) {
+                if (percentage >= milestone) {
+                    currentMilestone = milestone;
+                }
+            }
+            
+            // Si nous avons atteint un nouveau palier, le célébrer
+            if (currentMilestone > lastCelebratedMilestone) {
+                celebrateMilestone(currentMilestone);
+                lastCelebratedMilestone = currentMilestone;
+            }
+            
+            // Mettre à jour le graphique
+            updateChart();
+        }
+        
+        // Afficher la célébration d'un palier
+        function celebrateMilestone(milestone) {
+            // Créer l'élément de célébration
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            
+            // Définir le contenu en fonction du palier atteint
+            let emoji, title, message;
+            
+            if (milestone === 25) {
+                emoji = '🎯';
+                title = 'Premier quart atteint !';
+                message = 'Vous avez économisé 25% de votre objectif. Continuez comme ça !';
+            } else if (milestone === 50) {
+                emoji = '🎉';
+                title = 'Mi-parcours !';
+                message = 'Vous êtes à mi-chemin de votre objectif d\'épargne. Félicitations !';
+            } else if (milestone === 75) {
+                emoji = '🚀';
+                title = 'Déjà 75% !';
+                message = 'Vous vous approchez de votre but. Plus que 25% à économiser !';
+            } else if (milestone === 100) {
+                emoji = '💰';
+                title = 'OBJECTIF ATTEINT !';
+                message = 'Félicitations ! Vous avez atteint votre objectif d\'épargne de ' + OBJECTIVE.toLocaleString() + ' € !';
+            }
+            
+            // Construire le HTML de la célébration
+            celebration.innerHTML = `
+                <div class="celebration-content">
+                    <div class="celebration-emoji">${emoji}</div>
+                    <h2 class="celebration-title">${title}</h2>
+                    <p class="celebration-message">${message}</p>
+                    <button class="celebration-button">Continuer</button>
+                </div>
+            `;
+            
+            // Ajouter à la page
+            document.body.appendChild(celebration);
+            
+            // Ajouter l'événement de fermeture
+            const closeButton = celebration.querySelector('.celebration-button');
+            closeButton.addEventListener('click', () => {
+                celebration.style.animation = 'fadeIn 0.5s reverse';
+                setTimeout(() => {
+                    document.body.removeChild(celebration);
+                }, 500);
+            });
+        }
+
+        // Fonction pour exporter le planning en PDF
+        function exportToPDF() {
+            // Créer un conteneur de préparation pour l'exportation
+            const exportContainer = document.createElement('div');
+            exportContainer.className = 'container';
+            exportContainer.style.position = 'absolute';
+            exportContainer.style.top = '-9999px';
+            exportContainer.style.width = '800px'; // Largeur fixe pour le PDF
+            exportContainer.style.background = 'white'; // Toujours en mode clair pour le PDF
+            exportContainer.style.padding = '20px';
+            exportContainer.style.zIndex = '-1000';
+            
+            // Afficher un message de chargement
+            const loadingMessage = document.createElement('div');
+            loadingMessage.style.position = 'fixed';
+            loadingMessage.style.top = '50%';
+            loadingMessage.style.left = '50%';
+            loadingMessage.style.transform = 'translate(-50%, -50%)';
+            loadingMessage.style.padding = '20px';
+            loadingMessage.style.background = 'rgba(0, 0, 0, 0.7)';
+            loadingMessage.style.color = 'white';
+            loadingMessage.style.borderRadius = '10px';
+            loadingMessage.style.zIndex = '1000';
+            loadingMessage.style.fontSize = '18px';
+            loadingMessage.textContent = 'Préparation de votre PDF...';
+            document.body.appendChild(loadingMessage);
+            
+            // Dupliquer le contenu pour le PDF
+            const container = document.querySelector('.container');
+            exportContainer.innerHTML = container.innerHTML;
+            document.body.appendChild(exportContainer);
+            
+            // Mise en forme spécifique pour le PDF
+            const exportTitle = document.createElement('h1');
+            exportTitle.style.textAlign = 'center';
+            exportTitle.style.marginBottom = '20px';
+            exportTitle.style.fontSize = '24px';
+            const today = new Date();
+            exportTitle.textContent = `Plan d'Épargne - ${today.toLocaleDateString()}`;
+            exportContainer.insertBefore(exportTitle, exportContainer.firstChild);
+            
+            // Masquer les éléments interactifs dans la version d'exportation
+            const elementsToHide = exportContainer.querySelectorAll('button, .theme-toggle');
+            elementsToHide.forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Créer un canvas avec le contenu pour la capture
+            setTimeout(() => {
+                window.html2canvas = html2canvas;
+                window.jspdf = window.jspdf.jsPDF;
+                
+                html2canvas(exportContainer, {
+                    scale: 1, 
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                }).then(canvas => {
+                    // Créer le PDF
+                    const pdf = new jspdf('p', 'mm', 'a4');
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 210; // A4 width in mm
+                    const pageHeight = 295; // A4 height in mm
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+                    
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                    
+                    // Ajouter des pages supplémentaires si nécessaire
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+                    
+                    // Télécharger le PDF
+                    pdf.save(`Plan_Epargne_${today.toLocaleDateString().replace(/\//g, '-')}.pdf`);
+                    
+                    // Nettoyer
+                    document.body.removeChild(exportContainer);
+                    document.body.removeChild(loadingMessage);
+                }).catch(error => {
+                    console.error('Erreur lors de la génération du PDF:', error);
+                    alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+                    document.body.removeChild(exportContainer);
+                    document.body.removeChild(loadingMessage);
+                });
+            }, 500);
+        }
+    </script>
+</body>
+</html>
